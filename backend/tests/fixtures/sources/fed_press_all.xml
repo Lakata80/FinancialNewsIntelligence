@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Federal Reserve Press Releases</title>
+    <link>https://www.federalreserve.gov/releases/</link>
+    <description>Press releases from the Federal Reserve</description>
+    <item>
+      <title>Federal Reserve issues FOMC statement</title>
+      <link>https://www.federalreserve.gov/newsevents/pressreleases/monetary20261005a.htm</link>
+      <pubDate>Mon, 05 Oct 2026 18:00:00 +0000</pubDate>
+      <description>The Federal Open Market Committee decided to maintain the target range for the federal funds rate.</description>
+    </item>
+    <item>
+      <title>Federal Reserve Board publishes financial stability report</title>
+      <link>https://www.federalreserve.gov/newsevents/pressreleases/other20261001a.htm</link>
+      <pubDate>Thu, 01 Oct 2026 14:30:00 +0000</pubDate>
+      <description>The Federal Reserve Board released its semi-annual financial stability report.</description>
+    </item>
+    <item>
+      <title>Federal Reserve approves final rule on capital requirements</title>
+      <link>https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260928a.htm</link>
+      <pubDate>Mon, 28 Sep 2026 12:00:00 +0000</pubDate>
+      <description>The Federal Reserve approved a final rule to strengthen capital requirements for large banks.</description>
+    </item>
+  </channel>
+</rss>

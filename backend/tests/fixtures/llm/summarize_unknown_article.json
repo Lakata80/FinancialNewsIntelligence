@@ -1,0 +1,14 @@
+{
+  "cluster_id": 1,
+  "title_bg": "NVIDIA отчете рекордни приходи за Q3",
+  "summary_bg": "NVIDIA обяви рекордни приходи за третото тримесечие.",
+  "key_facts": [
+    {
+      "text_bg": "NVIDIA отчете рекордни приходи за Q3.",
+      "evidence": [{"article_id": 9999, "quote_en": "NVIDIA reported record Q3 earnings"}]
+    }
+  ],
+  "attributed_opinions": [],
+  "uncertainties_bg": [],
+  "injection_suspected": false
+}

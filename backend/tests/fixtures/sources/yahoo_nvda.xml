@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Yahoo Finance: NVDA</title>
+    <link>https://finance.yahoo.com/quote/NVDA</link>
+    <description>NVIDIA Corporation news headlines</description>
+    <item>
+      <title>Nvidia Reports Record Revenue for Q3 FY2026</title>
+      <link>https://finance.yahoo.com/news/nvidia-q3-results-2026.html?utm_source=yahoo&amp;tsrc=fin-notif</link>
+      <pubDate>Mon, 05 Oct 2026 10:30:00 +0000</pubDate>
+      <description>Nvidia posted record quarterly revenue driven by data center demand.</description>
+    </item>
+    <item>
+      <title>Analysts Raise NVDA Price Targets After Blowout Quarter</title>
+      <link>https://finance.yahoo.com/news/nvda-price-target-raise.html</link>
+      <pubDate>Mon, 05 Oct 2026 08:15:00 +0000</pubDate>
+      <description>Several Wall Street analysts increased their price targets following strong earnings.</description>
+    </item>
+    <item>
+      <title>NVDA Stock Volatility: What Investors Should Know</title>
+      <link>https://finance.yahoo.com/news/nvda-volatility-2026.html?utm_medium=rss</link>
+      <pubDate>Sun, 04 Oct 2026 20:00:00 +0000</pubDate>
+      <description>A look at the recent price swings in NVIDIA shares.</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,14 @@
+{
+  "facts": [
+    {
+      "fact_text_bg": "NVIDIA отчете приходи от $18.1 млрд. за Q3.",
+      "quote_en": "NVIDIA reported record Q3 earnings of $18.1B revenue.",
+      "article_clean_text": "NVIDIA reported record Q3 earnings of $18.1B revenue."
+    },
+    {
+      "fact_text_bg": "Приходите нараснаха с 12% спрямо предходното тримесечие.",
+      "quote_en": "revenue grew 12% year-over-year",
+      "article_clean_text": "NVIDIA revenue grew 12% year-over-year in Q3."
+    }
+  ]
+}

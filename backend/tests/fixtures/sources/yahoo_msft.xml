@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Yahoo Finance: MSFT</title>
+    <link>https://finance.yahoo.com/quote/MSFT</link>
+    <description>Microsoft Corporation news headlines</description>
+    <item>
+      <title>Microsoft Azure Growth Accelerates in Latest Quarter</title>
+      <link>https://finance.yahoo.com/news/msft-azure-growth.html</link>
+      <pubDate>Mon, 05 Oct 2026 09:00:00 +0000</pubDate>
+      <description>Azure cloud revenue grew 35% year-over-year, beating consensus estimates.</description>
+    </item>
+    <item>
+      <title>Microsoft Expands AI Copilot to Enterprise Customers</title>
+      <link>https://finance.yahoo.com/news/msft-copilot-enterprise.html?tsrc=fin</link>
+      <pubDate>Sat, 03 Oct 2026 14:00:00 +0000</pubDate>
+      <description>Microsoft is rolling out Copilot features to more enterprise customers globally.</description>
+    </item>
+  </channel>
+</rss>

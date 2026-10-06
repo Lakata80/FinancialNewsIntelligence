@@ -1,0 +1,9 @@
+{
+  "title": "NVIDIA Unveils Blackwell B200 GPU for Next-Generation AI Workloads",
+  "summary_raw": "NVIDIA announced the Blackwell B200 GPU architecture at its GTC developer conference. The new chip delivers 5x the inference performance of the previous Hopper H100 for large language models.",
+  "publisher": "Reuters",
+  "tickers_raw": ["NVDA"],
+  "url": "https://reuters.com/technology/nvidia-blackwell-b200-announcement",
+  "canonical_url": "https://reuters.com/technology/nvidia-blackwell-b200-announcement",
+  "published_at": "2024-11-21T15:00:00"
+}

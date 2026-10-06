@@ -1,0 +1,10 @@
+{
+  "cluster_id": 999,
+  "is_main_subject": true,
+  "event_type": "earnings",
+  "is_opinion": false,
+  "relevance_score": 0.9,
+  "injection_suspected": false,
+  "injection_reason": null,
+  "rationale_en": "Earnings report for NVDA."
+}

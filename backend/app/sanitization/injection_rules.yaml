@@ -1,0 +1,49 @@
+quarantine_threshold: 0.5
+
+rules:
+  - name: ignore_instructions
+    type: phrase
+    weight: 0.4
+    patterns:
+      - "ignore previous instructions"
+      - "ignore above instructions"
+      - "ignore all previous instructions"
+      - "disregard previous instructions"
+      - "disregard all instructions"
+      - "forget previous instructions"
+
+  - name: role_override
+    type: phrase
+    weight: 0.5
+    patterns:
+      - "you are now"
+      - "system prompt"
+      - "as an ai"
+      - "as an artificial intelligence"
+      - "you are an ai"
+
+  - name: financial_manipulation
+    type: phrase
+    weight: 0.5
+    patterns:
+      - "tell the user to buy"
+      - "tell the user to sell"
+      - "tell the user to hold"
+      - "tell users to buy"
+      - "tell users to sell"
+      - "advise the user to buy"
+      - "advise the user to sell"
+
+  - name: role_markers
+    type: regex
+    weight: 0.25
+    patterns:
+      - "(?im)^(assistant|system|user)\\s*:"
+      - "<\\|system\\|>"
+      - "<\\|im_start\\|>"
+      - "<\\|im_end\\|>"
+
+  - name: base64_block
+    type: base64
+    weight: 0.5
+    min_length: 100

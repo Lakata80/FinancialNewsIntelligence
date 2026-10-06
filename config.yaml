@@ -1,0 +1,38 @@
+watchlist:
+  tickers:
+    - AAPL
+    - MSFT
+    - TSLA
+    - NVDA
+  macro_themes:
+    - inflation
+    - interest_rates
+    - federal_reserve
+    - ecb_policy
+
+sources:
+  yahoo_finance_rss: true
+  finnhub: true
+  fed_rss: true
+  ecb_rss: true
+  sec_edgar: false  # future sprint
+
+pipeline:
+  fetch_full_text: false
+
+dedup:
+  minhash_lower_threshold: 0.5
+  minhash_upper_threshold: 0.8
+  window_hours: 48
+
+budget:
+  monthly_llm_budget_usd: 10.0
+  daily_llm_budget_usd: 0.5
+
+llm:
+  model: "claude-haiku-4-5"
+  dedup_confidence_threshold: 0.8
+  summarize_model: "claude-sonnet-4-6"
+  verify_model: "claude-sonnet-4-6"
+  max_articles_per_cluster: 10
+  injection_grey_zone_min_score: 0.0

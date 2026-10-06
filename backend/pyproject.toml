@@ -1,0 +1,43 @@
+[project]
+name = "financial-news-intelligence-backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0",
+    "alembic>=1.14",
+    "pydantic>=2.10",
+    "httpx2",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "pydantic-settings>=2.6",
+    "defusedxml>=0.7",
+    "beautifulsoup4>=4.12",
+    "datasketch>=1.6",
+    "anthropic>=0.40",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "httpx2",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: requires real Anthropic API key (skipped by default)"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+
+[[tool.mypy.overrides]]
+module = "app.core.*"
+strict = true

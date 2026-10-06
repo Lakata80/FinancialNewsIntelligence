@@ -1,0 +1,9 @@
+{
+  "title": "AMD Launches MI300X to Challenge NVIDIA in AI Accelerator Market",
+  "summary_raw": "Advanced Micro Devices unveiled the Instinct MI300X GPU accelerator targeting enterprise AI workloads. AMD claims the chip outperforms NVIDIA's H100 in memory bandwidth for large language model inference tasks.",
+  "publisher": "Reuters",
+  "tickers_raw": ["AMD"],
+  "url": "https://reuters.com/technology/amd-mi300x-launch",
+  "canonical_url": "https://reuters.com/technology/amd-mi300x-launch",
+  "published_at": "2024-11-21T16:00:00"
+}

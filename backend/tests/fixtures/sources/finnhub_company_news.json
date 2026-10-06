@@ -1,0 +1,24 @@
+[
+  {
+    "id": 10001,
+    "category": "company news",
+    "datetime": 1759737000,
+    "headline": "Nvidia Q3 Results Beat Expectations",
+    "image": "https://example.com/img1.jpg",
+    "related": "NVDA,AMD",
+    "source": "Reuters",
+    "summary": "Nvidia reported record earnings for the third quarter of fiscal year 2026.",
+    "url": "https://www.reuters.com/technology/nvidia-q3-2026.html"
+  },
+  {
+    "id": 10002,
+    "category": "company news",
+    "datetime": 1759720000,
+    "headline": "NVDA Data Center Revenue Surges",
+    "image": "https://example.com/img2.jpg",
+    "related": "NVDA",
+    "source": "Bloomberg",
+    "summary": "Data center segment contributed over 80% of total revenue.",
+    "url": "https://www.bloomberg.com/news/nvda-datacenter-surge"
+  }
+]
