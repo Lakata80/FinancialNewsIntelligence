@@ -22,6 +22,8 @@ export interface StoryOut {
   article_count: number
   first_seen_at: string
   last_seen_at: string
+  has_primary_source: boolean
+  sec_filing_url: string | null
   source_articles: ArticleLink[]
 }
 

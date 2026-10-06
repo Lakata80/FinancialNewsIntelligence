@@ -2,18 +2,44 @@
 import argparse
 import logging
 
+import yaml
+
 from app.ingestion.ecb import ECBPressRSS
 from app.ingestion.fed import FedPressRSS
 from app.ingestion.finnhub import FinnhubCompanyNews
 from app.ingestion.pipeline import run_all_connectors
 from app.ingestion.yahoo import YahooTickerRSS
 
-_CONNECTORS = [
-    YahooTickerRSS(),
-    FinnhubCompanyNews(),
-    FedPressRSS(),
-    ECBPressRSS(),
-]
+
+def _build_connectors():
+    import pathlib
+    cfg_path = pathlib.Path(__file__).parent.parent.parent / "config.yaml"
+    try:
+        with open(cfg_path, encoding="utf-8") as f:
+            cfg = yaml.safe_load(f)
+        sec_enabled = cfg.get("sources", {}).get("sec_edgar", False)
+    except Exception:
+        sec_enabled = False
+
+    connectors = [
+        YahooTickerRSS(),
+        FinnhubCompanyNews(),
+        FedPressRSS(),
+        ECBPressRSS(),
+    ]
+
+    if sec_enabled:
+        try:
+            from app.ingestion.sec_edgar import SecEdgarConnector
+            connectors.append(SecEdgarConnector())
+        except RuntimeError as exc:
+            import logging
+            logging.getLogger(__name__).warning("SEC EDGAR connector disabled: %s", exc)
+
+    return connectors
+
+
+_CONNECTORS = _build_connectors()
 
 _COL_SRC = 20
 _COL_SEEN = 8

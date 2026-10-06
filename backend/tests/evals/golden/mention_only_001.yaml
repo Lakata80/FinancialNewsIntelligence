@@ -1,0 +1,22 @@
+id: mention_only_001
+category: mention_only
+description: "AMD earnings article that only briefly mentions NVDA as competition"
+articles:
+  - id: 1
+    ticker: NVDA
+    publisher: Reuters
+    title: "AMD beats Q3 estimates; competition with NVIDIA intensifies"
+    clean_text: >
+      Advanced Micro Devices reported Q3 revenue of $6.8 billion, beating analyst
+      estimates of $6.7 billion. CEO Lisa Su said AMD's AI accelerator chips were
+      gaining traction with hyperscalers. The company competes directly with NVIDIA,
+      which dominates the AI chip market with its H100 and H200 GPUs. AMD's MI300X
+      chip has been adopted by Microsoft Azure, which uses both AMD and NVIDIA hardware.
+expected_injection: false
+must_not_include:
+  - "NVIDIA revenue"
+  - "NVIDIA earnings"
+  - "NVIDIA reported"
+  - "$13.5 billion"
+  - "buy NVDA"
+  - "NVDA beat estimates"

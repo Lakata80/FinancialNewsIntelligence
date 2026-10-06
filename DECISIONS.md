@@ -476,6 +476,145 @@ Use `openapi-typescript` (dev dependency) to generate `frontend/src/api/types.ts
 
 ---
 
+## ADR-023 — Evaluation harness design (Sprint 7)
+
+**Status:** Accepted
+**Date:** 2026-10-06
+
+### Context
+Five pipeline stages and a three-layer injection defence exist but no regression suite.
+Any prompt edit, model swap, or threshold change can silently degrade quality.
+Sprint 7 adds a golden-dataset eval that runs after every significant change.
+
+### Decision
+
+| Concern | Choice |
+|---|---|
+| Golden case format | YAML (multi-line article text is readable; pyyaml already a dependency) |
+| Replay cache | JSONL per case (`tests/evals/replay_cache/<case_id>.jsonl`), one record per LLM call, keyed by `sha256(user_msg)[:16]` |
+| Metrics | Deterministic-first: `quote_validity_rate` and `number_grounding_rate` use Python `str.find` + existing `normalizer.py` — zero extra LLM cost |
+| `unsupported_fact_rate` | Reuses `verify_story()` LLM judge — no new prompt |
+| Cost gate | `make eval` prints estimated cost (~$0.56 for 36 cases) and waits for `yes` before calling the API; `--yes` flag for scripted use |
+| Hard exit codes | Exit 1 if `quote_validity_rate < 1.0`, `advice_leak > 0`, or `leak_rate > 0` |
+| Three-layer defence test | `tests/test_defense_in_depth.py`: each layer tested independently; Layer 1 = deterministic; Layer 2 = mocked LLM; Layer 3 = deterministic `check_no_advice` |
+
+### Consequences
+- `make eval-replay` runs in CI without API calls; `make eval` is the gate before prompt changes are merged.
+- Reports are written to `tests/evals/reports/` (gitignored) as both `.md` and `.json` for diff comparison.
+- The replay cache (also gitignored) must be regenerated when prompt or model changes.
+- Golden dataset covers 8 categories × ≥ 3 cases = 36 cases total; injection category has 10 cases.
+
+---
+
+## ADR-024 — SEC EDGAR: primary source design (Sprint 8)
+
+**Status:** Accepted
+**Date:** 2026-10-06
+
+### Context
+Sprint 8 adds SEC EDGAR as the first official, primary source. It serves two purposes: (1) standalone stories for filings with no media coverage, and (2) corroboration of media clusters. The design must integrate cleanly with the existing ingestion pipeline while making the official-source status explicit and queryable.
+
+### Decision
+
+| Concern | Choice |
+|---|---|
+| `Source.kind` | `"primary"` — new value, distinct from `"rss"` / `"api"` (see Q-006) |
+| `Source.is_official` | `True` for all SEC EDGAR sources |
+| Article SEC metadata | `Article.sec_form_type VARCHAR NULL` and `Article.sec_items JSON NULL` (migration 0006) |
+| Cluster corroboration flag | `StoryCluster.has_primary_source BOOLEAN NOT NULL DEFAULT FALSE` (migration 0006) |
+| Filing link | `StoryCluster.sec_filing_url VARCHAR NULL` (migration 0006) |
+| Corroboration match method | `ClusterMember.match_method = "sec_corroboration"` (no migration needed; VARCHAR) |
+| Rate limiting | `RateLimiter(max_per_second=5.0)` — conservative half of SEC's published 10 req/sec limit |
+| Ticker → CIK | `CikCache`: download `company_tickers.json` from SEC, cache locally as `backend/.sec_cik_cache.json`, TTL 24h |
+| 8-K item → event_type | Deterministic mapping: 2.02→earnings, 5.02→executive_change, 1.01/2.01→merger_acquisition, 1.03→regulatory, else→other |
+| 10-Q / 10-K | Always → `earnings` |
+| 6-K | Always → `other` |
+| Uncertain corroboration | LLM check via `sec_corroborate_v1.md` prompt (same spotlighting rules as dedup_check) |
+| Standalone large filings | Summarizer skipped if `clean_text > 8 000 chars` (see Q-005) |
+| Pipeline stage | `--stage corroborate`, runs after `dedup`, before `classify` |
+| User-Agent enforcement | Connector refuses to start if `SEC_USER_AGENT` is empty (CLAUDE.md rule e: untrusted data; SEC ToS) |
+
+### Consequences
+- `Source.kind = "primary"` is a new enum value; downstream queries filtering `kind IN ('rss','api')` must be updated to include `'primary'` if needed.
+- The corroboration stage is idempotent: re-running it will not create duplicate `ClusterMember` rows (unique constraint on `(cluster_id, article_id)`).
+- SEC standalone stories have `has_primary_source=True` even without media coverage — the badge signals official origin, not media corroboration.
+- If a media cluster correctly reports an event but no SEC filing arrives within 48h, the cluster keeps `has_primary_source=False`. Absence of a filing is not evidence of a false story.
+
+---
+
+## ADR-025 — `story_versions` snapshot design (Sprint 9)
+
+**Status:** Accepted
+**Date:** 2026-10-06
+
+### Context
+Sprint 9 requires that when a new article joins an already-summarised cluster, the old story is re-generated and the superseded version is preserved for audit. Options: (a) normalised history tables mirroring `story_facts`/`fact_evidence`, (b) full-snapshot JSON column per archived version.
+
+### Decision
+Full-snapshot approach: one `story_versions` row per superseded story. Key story-level fields plus all facts are serialised into a single `snapshot_json` TEXT column. No normalised history-of-facts table — this is audit-only, not a queryable facts index.
+
+Snapshot fields: `title_bg`, `summary_bg`, `verification_status`, `tickers`, `event_type`, `is_opinion`, `model_version`, `prompt_version`, plus `facts` as a JSON array `[{fact_order, text_bg, verification_status, quotes:[{quote_en, article_id}]}]`.
+
+`reason` VARCHAR: `"new_article_joined"` | `"manual_rerun"`.
+
+Trigger: a cluster is "changed" when `story_cluster.last_seen_at > story.created_at`. The summariser checks this before the skip-if-exists guard.
+
+### Consequences
+- Archive step is simple: serialise to JSON, insert `story_versions` row, delete `stories` row (cascade clears `story_facts` and `fact_evidence`), then re-summarise.
+- `story_versions` rows are never deleted (audit trail per ADR-018 spirit).
+- `version_num` is `MAX(version_num) + 1` for that `story_id` (1 if first archive).
+
+---
+
+## ADR-026 — LLM response cache (Sprint 9)
+
+**Status:** Accepted
+**Date:** 2026-10-06
+
+### Context
+Re-running the pipeline on unchanged clusters repeats identical LLM calls at full cost. A cache that returns stored responses when the input is identical eliminates this waste without changing any caller.
+
+### Decision
+New table `llm_response_cache`. Cache key = `sha256(prompt_version + ":" + model + ":" + user_message_utf8)[:32]` (hex). Key includes `prompt_version` and `model` so any prompt edit or model change automatically produces a cache miss — no manual invalidation needed.
+
+Cache hit: return stored `response_text`, log to `llm_calls` with `status="cache_hit"`, `cost_usd=0`, `input_tokens=0`, `output_tokens=0`. Budget guard is not charged on a hit.
+
+No TTL by default; configurable via `llm.cache_ttl_days: -1` (−1 = never expire).
+
+`AnthropicLlmClient.call()` is the sole entry point — no caller changes needed.
+
+### Consequences
+- Repeat pipeline runs on the same day (e.g. crash-and-restart) cost nothing for already-processed clusters.
+- Cache rows accumulate indefinitely unless `cache_ttl_days` is set; at the current scale (hundreds of clusters/month) this is negligible.
+- The eval harness already has its own replay cache (`tests/evals/replay_cache/`); this DB cache operates at the production layer, independent of the eval harness.
+
+---
+
+## ADR-027 — Structured JSON logging with `contextvars` run_id (Sprint 9)
+
+**Status:** Accepted
+**Date:** 2026-10-06
+
+### Context
+Sprint 9 requires structured logs (JSON) with a `run_id` that threads through all pipeline stages so every log record can be correlated to a single pipeline execution.
+
+### Decision
+Custom `JsonFormatter` subclassing `logging.Formatter` — no new runtime dependency. Uses `contextvars.ContextVar('pipeline_run_id')` so every log record emitted during a pipeline run automatically includes `run_id` without passing it through every function signature.
+
+Log record format:
+```json
+{"ts": "2026-10-06T14:23:01.123Z", "level": "INFO", "logger": "app.llm.client", "run_id": "run_abc123", "msg": "LLM call completed"}
+```
+
+Centralised in `backend/app/core/log_config.py`. Called from `main.py` (FastAPI startup) and `pipeline.py` (CLI entry point). `run_id_var.set(run_id)` is called at the top of `_run()` in `pipeline_api.py` and at the CLI entry.
+
+### Consequences
+- All existing `logger.info(...)` calls gain structured output with zero changes to call sites.
+- `run_id` is `None` in records emitted outside a pipeline run (startup, health checks) — the formatter omits the field in that case.
+- No dependency on `structlog` or `python-json-logger`; the formatter is ~30 lines.
+
+---
+
 ## ADR-022 — `react-router-dom` for client-side routing
 
 **Status:** Accepted

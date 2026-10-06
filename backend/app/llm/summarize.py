@@ -1,19 +1,20 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
 from pydantic import ValidationError
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.llm.budget import BudgetExceeded
 from app.llm.client import AnthropicLlmClient
 from app.llm.models import AttributedOpinion, EvidenceItem, KeyFact, SummarizationOutput
 from app.llm.spotlighting import wrap_article_full
-from app.models.news import Article, ClusterMember, FactEvidence, Story, StoryCluster, StoryFact
+from app.models.news import Article, ClusterMember, FactEvidence, Story, StoryCluster, StoryFact, StoryVersion
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,64 @@ def _verify_quotes(
     return True
 
 
+def _archive_story(story: Story, session: Session, reason: str) -> None:
+    """Snapshot a story to story_versions before deleting it for re-summarization.
+
+    Explicitly deletes facts and evidence first because story_facts.story_id is NOT NULL
+    (SQLAlchemy cannot nullify it before the story delete).
+    """
+    facts_snapshot = []
+    for fact in story.facts:
+        facts_snapshot.append({
+            "fact_order": fact.fact_order,
+            "text_bg": fact.text_bg,
+            "verification_status": fact.verification_status,
+            "quotes": [
+                {"quote_en": ev.quote_en, "article_id": ev.article_id}
+                for ev in fact.evidence
+            ],
+        })
+        for ev in fact.evidence:
+            session.delete(ev)
+        session.delete(fact)
+
+    snapshot = {
+        "story_id": story.id,
+        "title_bg": story.title_bg,
+        "summary_bg": story.summary_bg,
+        "verification_status": story.verification_status,
+        "tickers": story.tickers,
+        "event_type": story.event_type,
+        "is_opinion": story.is_opinion,
+        "model_version": story.model_version,
+        "prompt_version": story.prompt_version,
+        "created_at": story.created_at.isoformat(),
+        "facts": facts_snapshot,
+    }
+
+    max_version = session.scalar(
+        select(func.max(StoryVersion.version_num)).where(StoryVersion.cluster_id == story.cluster_id)
+    )
+    version_num = (max_version or 0) + 1
+
+    session.add(StoryVersion(
+        cluster_id=story.cluster_id,
+        version_num=version_num,
+        replaced_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        reason=reason,
+        snapshot_json=json.dumps(snapshot, ensure_ascii=False),
+        model_version=story.model_version,
+        prompt_version=story.prompt_version,
+    ))
+    session.flush()
+    session.delete(story)
+    session.flush()
+    logger.info(
+        "cluster %d: archived story %d as version %d (reason=%s)",
+        story.cluster_id, story.id, version_num, reason,
+    )
+
+
 def summarize_cluster(
     cluster: StoryCluster,
     client: AnthropicLlmClient,
@@ -64,14 +123,23 @@ def summarize_cluster(
 ) -> Story | None:
     """Summarise a cluster and persist the result as a Story with facts and evidence.
 
-    Returns the existing Story if one already exists for the cluster.
+    If the cluster has changed since the existing story was created (new article joined),
+    archives the old story to story_versions and re-summarizes.
+
+    Returns the existing Story if one already exists and the cluster is unchanged.
     Returns None (non-fatal) on BudgetExceeded, JSON error, schema validation failure,
     or any structural check failure (unknown article_id, cluster_id mismatch, missing quote).
     """
     existing = session.scalar(select(Story).where(Story.cluster_id == cluster.id))
     if existing is not None:
-        logger.info("cluster %d already has story %d — skipping", cluster.id, existing.id)
-        return existing
+        if cluster.last_seen_at <= existing.created_at:
+            logger.info("cluster %d already has story %d — skipping", cluster.id, existing.id)
+            return existing
+        logger.info(
+            "cluster %d: new articles since story %d was created — re-summarizing",
+            cluster.id, existing.id,
+        )
+        _archive_story(existing, session, reason="new_article_joined")
 
     articles = session.scalars(
         select(Article)

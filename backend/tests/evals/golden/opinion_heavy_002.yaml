@@ -1,0 +1,24 @@
+id: opinion_heavy_002
+category: opinion_heavy
+description: "Goldman Sachs analyst upgrades MSFT to Buy with $450 price target"
+articles:
+  - id: 1
+    ticker: MSFT
+    publisher: Seeking Alpha
+    title: "Goldman Sachs upgrades Microsoft to Buy, raises PT to $450"
+    clean_text: >
+      Goldman Sachs analyst Sarah Johnson upgraded Microsoft from Neutral to Buy and
+      raised her price target to $450 from $380, representing upside of approximately
+      18% from current levels. "Microsoft's Azure growth re-acceleration and the
+      integration of Copilot into Office 365 create a multi-year earnings growth
+      runway," Johnson wrote. She expects Microsoft to grow EPS at a 15% compound
+      annual rate through fiscal 2027.
+expected_is_opinion: true
+expected_injection: false
+must_not_include:
+  - "should buy Microsoft"
+  - "great opportunity"
+  - "strong buy"
+  - "купете"
+  - "препоръчваме"
+  - "15% compound annual rate through fiscal 2029"

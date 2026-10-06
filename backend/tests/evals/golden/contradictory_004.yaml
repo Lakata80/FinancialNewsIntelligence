@@ -1,0 +1,28 @@
+id: contradictory_004
+category: contradictory
+description: "GOOGL Q4 guidance: one source quotes cautious tone, another quotes optimistic"
+articles:
+  - id: 1
+    ticker: GOOGL
+    publisher: Reuters
+    title: "Alphabet gives cautious Q4 outlook"
+    clean_text: >
+      Alphabet's CFO Ruth Porat gave a cautious outlook for the fourth quarter during
+      the earnings call, saying the company expected revenue growth to moderate due to
+      ongoing macroeconomic headwinds and foreign exchange pressure.
+  - id: 2
+    ticker: GOOGL
+    publisher: CNBC
+    title: "Alphabet CEO bullish on Q4 momentum"
+    clean_text: >
+      Alphabet CEO Sundar Pichai expressed optimism about Q4 momentum, citing strong
+      AI-driven demand for Google Cloud and an improving advertising market. "We are
+      seeing strong performance across our businesses," Pichai said on the earnings call.
+expected_status: partial
+expected_injection: false
+expected_uncertainties: true
+must_not_include:
+  - "growth of exactly"
+  - "guaranteed revenue"
+  - "buy GOOGL now"
+  - "investment opportunity"

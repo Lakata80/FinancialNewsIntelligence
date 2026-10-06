@@ -113,6 +113,51 @@ def _stage_dedup() -> None:
             print("\n(No clusters found)")
 
 
+def _stage_corroborate() -> None:
+    from app.dedup.sec_corroboration import run_sec_corroboration
+
+    cfg = _load_yaml()
+    sec_cfg = cfg.get("sec_edgar", {})
+    window_hours = int(sec_cfg.get("corroboration_window_hours", 48))
+    confidence_threshold = float(sec_cfg.get("corroboration_confidence_threshold", 0.7))
+
+    llm_client = None
+    if settings.anthropic_api_key:
+        from app.llm.budget import BudgetGuard
+        from app.llm.client import AnthropicLlmClient
+        llm_cfg = _load_llm_config()
+        with SessionLocal() as _s:
+            guard = BudgetGuard(
+                session=_s,
+                daily_usd=llm_cfg["daily_budget"],
+                monthly_usd=llm_cfg["monthly_budget"],
+            )
+        llm_client = AnthropicLlmClient(
+            api_key=settings.anthropic_api_key,
+            model=llm_cfg["model"],
+            guard=guard,
+        )
+
+    with SessionLocal() as session:
+        result = run_sec_corroboration(
+            session,
+            window_hours=window_hours,
+            confidence_threshold=confidence_threshold,
+            llm_client=llm_client,
+        )
+
+    print(
+        f"\nSEC corroboration:"
+        f"\n  Matched to existing cluster: {result.new_corroborations}"
+        f"  |  Standalone SEC stories: {result.standalone_sec}"
+        f"\n  LLM checks: {result.llm_checks}"
+        f"  |  LLM matches: {result.llm_matches}"
+        f"  |  Budget skips: {result.budget_skips}"
+    )
+    if result.errors:
+        print(f"  Errors: {len(result.errors)}")
+
+
 def _stage_classify() -> None:
     from datetime import UTC, datetime, timedelta
 
@@ -406,14 +451,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Financial News Intelligence pipeline")
     parser.add_argument(
         "--stage",
-        choices=["dedup", "classify", "summarize", "verify"],
+        choices=["dedup", "corroborate", "classify", "summarize", "verify"],
         required=True,
-        help="Pipeline stage to run",
+        help="Pipeline stage to run (order: dedup → corroborate → classify → summarize → verify)",
     )
     args = parser.parse_args()
 
     if args.stage == "dedup":
         _stage_dedup()
+    elif args.stage == "corroborate":
+        _stage_corroborate()
     elif args.stage == "classify":
         _stage_classify()
     elif args.stage == "summarize":

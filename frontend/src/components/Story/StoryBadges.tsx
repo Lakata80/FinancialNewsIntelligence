@@ -56,6 +56,18 @@ export function StoryBadges({ story }: Props) {
           {t}
         </span>
       ))}
+      {story.has_primary_source && story.sec_filing_url && (
+        <a
+          href={story.sec_filing_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Официален документ от SEC EDGAR"
+          aria-label="Официален документ от SEC EDGAR"
+          className="rounded px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-bold hover:underline"
+        >
+          SEC
+        </a>
+      )}
     </div>
   )
 }

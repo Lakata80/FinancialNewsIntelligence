@@ -91,6 +91,8 @@ def _persist_articles(
                 injection_score=result.injection_score,
                 matched_rules=result.matched_rules,
                 status=article_status,
+                sec_form_type=raw.raw_payload.get("sec_form_type"),
+                sec_items=raw.raw_payload.get("sec_items"),
             )
             .on_conflict_do_nothing(index_elements=["canonical_url"])
         )

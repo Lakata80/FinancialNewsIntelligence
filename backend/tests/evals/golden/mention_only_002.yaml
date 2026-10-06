@@ -1,0 +1,21 @@
+id: mention_only_002
+category: mention_only
+description: "Oracle cloud article that mentions Microsoft Azure only in passing"
+articles:
+  - id: 1
+    ticker: MSFT
+    publisher: CNBC
+    title: "Oracle Q1 cloud revenue beats expectations"
+    clean_text: >
+      Oracle reported Q1 FY2025 cloud infrastructure revenue of $2.2 billion, up 45%
+      year over year, beating analyst forecasts. CEO Safra Catz cited strong demand for
+      Oracle Cloud Infrastructure as enterprises diversify away from AWS and Microsoft
+      Azure. Oracle's database and cloud services now compete in most enterprise deals
+      where Microsoft's cloud offerings are evaluated.
+expected_injection: false
+must_not_include:
+  - "Microsoft revenue"
+  - "Microsoft earned"
+  - "Azure revenue was $28"
+  - "Microsoft beat estimates"
+  - "buy MSFT"

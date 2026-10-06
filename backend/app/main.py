@@ -6,6 +6,10 @@ from app.api.articles import router as articles_router
 from app.api.debug import router as debug_router
 from app.api.pipeline_api import router as pipeline_router
 from app.api.stories import router as stories_router
+from app.core.config import settings
+from app.core.log_config import configure_logging
+
+configure_logging(level=settings.log_level)
 
 app = FastAPI(title="Financial News Intelligence")
 

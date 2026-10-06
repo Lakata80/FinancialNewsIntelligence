@@ -15,7 +15,7 @@ class Source(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(unique=True, nullable=False)
-    kind: Mapped[str] = mapped_column(nullable=False)  # "rss" | "api"
+    kind: Mapped[str] = mapped_column(nullable=False)  # "rss" | "api" | "primary"
     url_template: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_official: Mapped[bool] = mapped_column(default=False)
     enabled: Mapped[bool] = mapped_column(default=True)
@@ -50,6 +50,10 @@ class Article(Base):
     injection_score: Mapped[float | None] = mapped_column(nullable=True)
     matched_rules: Mapped[Any] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(nullable=False, default="active")
+
+    # Sprint 8: SEC EDGAR metadata
+    sec_form_type: Mapped[str | None] = mapped_column(nullable=True)
+    sec_items: Mapped[Any] = mapped_column(JSON, nullable=True)
 
     source: Mapped["Source"] = relationship(back_populates="articles")
     cluster_memberships: Mapped[list["ClusterMember"]] = relationship(
@@ -92,8 +96,13 @@ class StoryCluster(Base):
     classification_model: Mapped[str | None] = mapped_column(nullable=True)
     classification_prompt_version: Mapped[str | None] = mapped_column(nullable=True)
 
+    # Sprint 8: SEC EDGAR corroboration
+    has_primary_source: Mapped[bool] = mapped_column(nullable=False, default=False)
+    sec_filing_url: Mapped[str | None] = mapped_column(nullable=True)
+
     members: Mapped[list["ClusterMember"]] = relationship(back_populates="cluster")
     story: Mapped["Story | None"] = relationship(back_populates="cluster", uselist=False)
+    versions: Mapped[list["StoryVersion"]] = relationship(back_populates="cluster")
 
 
 class ClusterMember(Base):
@@ -109,7 +118,7 @@ class ClusterMember(Base):
     article_id: Mapped[int] = mapped_column(
         ForeignKey("articles.id"), nullable=False
     )
-    match_method: Mapped[str] = mapped_column(nullable=False)  # "exact_hash" | "minhash"
+    match_method: Mapped[str] = mapped_column(nullable=False)  # "exact_hash" | "minhash" | "sec_corroboration"
     similarity: Mapped[float] = mapped_column(nullable=False)
     needs_llm_check: Mapped[bool] = mapped_column(nullable=False, default=False)
 
@@ -192,5 +201,41 @@ class LlmCall(Base):
     output_tokens: Mapped[int] = mapped_column(nullable=False)
     cost_usd: Mapped[float] = mapped_column(nullable=False)
     latency_ms: Mapped[int] = mapped_column(nullable=False)
-    status: Mapped[str] = mapped_column(nullable=False)  # "ok" | "rejected" | "budget_exceeded"
+    status: Mapped[str] = mapped_column(nullable=False)  # "ok" | "rejected" | "budget_exceeded" | "cache_hit"
     created_at: Mapped[datetime] = mapped_column(_DT, nullable=False)
+
+
+class StoryVersion(Base):
+    """Archived snapshot of a story that was superseded by re-summarization (ADR-025)."""
+
+    __tablename__ = "story_versions"
+    __table_args__ = (UniqueConstraint("cluster_id", "version_num", name="uq_story_versions_cluster_version"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    cluster_id: Mapped[int] = mapped_column(ForeignKey("story_clusters.id"), nullable=False)
+    version_num: Mapped[int] = mapped_column(nullable=False)
+    replaced_at: Mapped[datetime] = mapped_column(_DT, nullable=False)
+    reason: Mapped[str] = mapped_column(nullable=False)  # "new_article_joined" | "manual_rerun"
+    snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    model_version: Mapped[str] = mapped_column(nullable=False)
+    prompt_version: Mapped[str] = mapped_column(nullable=False)
+
+    cluster: Mapped["StoryCluster"] = relationship(back_populates="versions")
+
+
+class LlmResponseCache(Base):
+    """DB-backed LLM response cache keyed by sha256(prompt_version+model+user_msg) (ADR-026)."""
+
+    __tablename__ = "llm_response_cache"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    cache_key: Mapped[str] = mapped_column(nullable=False, unique=True)
+    purpose: Mapped[str] = mapped_column(nullable=False)
+    model: Mapped[str] = mapped_column(nullable=False)
+    prompt_version: Mapped[str] = mapped_column(nullable=False)
+    response_text: Mapped[str] = mapped_column(Text, nullable=False)
+    input_tokens: Mapped[int] = mapped_column(nullable=False)
+    output_tokens: Mapped[int] = mapped_column(nullable=False)
+    hit_count: Mapped[int] = mapped_column(nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(_DT, nullable=False)
+    last_hit_at: Mapped[datetime | None] = mapped_column(_DT, nullable=True)

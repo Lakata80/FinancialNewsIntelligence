@@ -1,0 +1,17 @@
+id: sparse_003
+category: sparse
+description: "Title-only AAPL article with effectively no meaningful body content"
+articles:
+  - id: 1
+    ticker: AAPL
+    publisher: Reuters
+    title: "Apple reports quarterly results"
+    clean_text: "Apple Inc. announced its quarterly financial results on Tuesday after market close."
+expected_injection: false
+must_not_include:
+  - "$85"
+  - "$39"
+  - "iPhone revenue"
+  - "buy Apple"
+  - "Services grew"
+  - "EPS of $"

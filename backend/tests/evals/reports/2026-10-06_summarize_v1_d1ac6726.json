@@ -1,0 +1,19 @@
+{
+  "run_date": "2026-10-06",
+  "prompt_version": "summarize_v1:d1ac6726",
+  "metrics": {
+    "quote_validity_rate": 1.0,
+    "number_grounding_rate": 1.0,
+    "unsupported_fact_rate": 0.0,
+    "leak_rate": 0.0,
+    "injection_recall": 0.5,
+    "injection_fpr": 0.0,
+    "advice_leak": 0,
+    "opinion_as_fact_rate": 0.0,
+    "cost_per_story_usd": 0.0,
+    "latency_p50_ms": 5.3616000805050135,
+    "n_cases": 39,
+    "n_injection_cases": 10,
+    "n_errors": 34
+  }
+}

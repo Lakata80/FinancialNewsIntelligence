@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./news.db"
     finnhub_api_key: str = ""
     anthropic_api_key: str = ""
+    sec_user_agent: str = ""
     watchlist: list[str] = ["NVDA", "MSFT", "GOOGL", "AAPL", "META"]
     log_level: str = "INFO"
     user_agent: str = "FinancialNewsIntelligence/1.0 (personal research tool)"

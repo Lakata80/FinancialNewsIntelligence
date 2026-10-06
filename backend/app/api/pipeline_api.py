@@ -7,8 +7,12 @@ import uuid
 from typing import Any
 
 import yaml
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_db
+from app.core.log_config import run_id_var
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -53,6 +57,7 @@ def _running_id() -> str | None:
 
 
 def _run(run_id: str) -> None:
+    run_id_var.set(run_id)
     try:
         _do_fetch(run_id)
         _do_dedup(run_id)
@@ -123,7 +128,7 @@ def _do_classify(run_id: str) -> None:
 
 def _do_summarize(run_id: str) -> None:
     _update(run_id, "summarize")
-    from sqlalchemy import select
+    from sqlalchemy import or_, select
 
     from app.core.config import settings
     from app.core.db import SessionLocal
@@ -151,11 +156,23 @@ def _do_summarize(run_id: str) -> None:
             input_cost_per_token=SONNET_INPUT_COST,
             output_cost_per_token=SONNET_OUTPUT_COST,
         )
-        summarized_subq = select(Story.cluster_id).scalar_subquery()
+        # Include clusters with no story AND clusters whose story is stale (new article joined)
+        stale_subq = (
+            select(StoryCluster.id)
+            .join(Story, Story.cluster_id == StoryCluster.id)
+            .where(Story.created_at < StoryCluster.last_seen_at)
+            .scalar_subquery()
+        )
+        no_story_subq = select(Story.cluster_id).scalar_subquery()
         candidates = session.scalars(
             select(StoryCluster)
             .where(StoryCluster.visible.is_(True))
-            .where(StoryCluster.id.not_in(summarized_subq))
+            .where(
+                or_(
+                    StoryCluster.id.not_in(no_story_subq),
+                    StoryCluster.id.in_(stale_subq),
+                )
+            )
         ).all()
         for cluster in candidates:
             try:
@@ -211,6 +228,65 @@ def _do_verify(run_id: str) -> None:
             except Exception as exc:
                 logger.warning("verify story %d error: %s", story.id, exc)
         session.commit()
+
+
+class PipelineEstimateOut(BaseModel):
+    new_clusters: int
+    changed_clusters: int
+    total_clusters_to_process: int
+    estimated_cost_usd: float
+    show_warning: bool
+
+
+@router.get("/pipeline/estimate", response_model=PipelineEstimateOut)
+def estimate_pipeline(db: Session = Depends(get_db)) -> PipelineEstimateOut:
+    """Count clusters that need LLM work and estimate their cost."""
+    from sqlalchemy import or_, select
+
+    from app.models.news import Story, StoryCluster
+
+    cfg = _load_cfg()
+    threshold = int(cfg.get("pipeline", {}).get("cost_estimate_threshold", 5))
+
+    no_story_subq = select(Story.cluster_id).scalar_subquery()
+    stale_subq = (
+        select(StoryCluster.id)
+        .join(Story, Story.cluster_id == StoryCluster.id)
+        .where(Story.created_at < StoryCluster.last_seen_at)
+        .scalar_subquery()
+    )
+
+    from sqlalchemy import func
+
+    new_count: int = db.query(func.count(StoryCluster.id)).filter(
+        StoryCluster.visible.is_(True),
+        StoryCluster.id.not_in(no_story_subq),
+    ).scalar() or 0
+
+    changed_count: int = db.query(func.count(StoryCluster.id)).filter(
+        StoryCluster.visible.is_(True),
+        StoryCluster.id.in_(stale_subq),
+    ).scalar() or 0
+
+    total = new_count + changed_count
+
+    # Cost estimate per cluster: Haiku classify + Sonnet summarize + Sonnet verify
+    # Token counts from ADR-023 defaults
+    from app.llm.client import HAIKU_INPUT_COST, HAIKU_OUTPUT_COST, SONNET_INPUT_COST, SONNET_OUTPUT_COST
+    cost_per_cluster = (
+        600 * HAIKU_INPUT_COST + 180 * HAIKU_OUTPUT_COST      # classify
+        + 1200 * SONNET_INPUT_COST + 500 * SONNET_OUTPUT_COST  # summarize
+        + 400 * SONNET_INPUT_COST + 120 * SONNET_OUTPUT_COST   # verify
+    )
+    estimated_cost = round(total * cost_per_cluster, 4)
+
+    return PipelineEstimateOut(
+        new_clusters=new_count,
+        changed_clusters=changed_count,
+        total_clusters_to_process=total,
+        estimated_cost_usd=estimated_cost,
+        show_warning=total > threshold,
+    )
 
 
 @router.post("/pipeline/run", response_model=PipelineRunOut)

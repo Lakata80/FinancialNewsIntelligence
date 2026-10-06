@@ -31,3 +31,31 @@ lint:
 # Run e2e tests (requires `just dev` running in another terminal)
 e2e:
     Set-Location e2e; npx playwright test
+
+# Run evaluation suite against real API (costs money — prompts for confirmation)
+eval:
+    Set-Location backend; uv run python -m tests.evals.runner --mode live
+
+# Run evaluation suite using recorded responses (free, safe for CI)
+eval-replay:
+    Set-Location backend; uv run python -m tests.evals.runner --mode replay
+
+# Delete old articles/stories per retention policy (dry-run: shows what would be deleted)
+cleanup:
+    Set-Location backend; uv run python -m app.maintenance cleanup
+
+# Preview cleanup without making any changes
+cleanup-dry-run:
+    Set-Location backend; uv run python -m app.maintenance cleanup --dry-run
+
+# Create a timestamped SQLite backup in backups/
+backup:
+    Set-Location backend; uv run python -m app.maintenance backup
+
+# Export today's verified stories as a Markdown digest to exports/
+export-digest:
+    Set-Location backend; uv run python -m app.maintenance export-digest
+
+# Export a specific date's digest (usage: just export-digest-date 2026-10-06)
+export-digest-date DATE:
+    Set-Location backend; uv run python -m app.maintenance export-digest --date {{DATE}}

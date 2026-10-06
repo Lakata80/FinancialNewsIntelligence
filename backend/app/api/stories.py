@@ -56,6 +56,8 @@ class StoryOut(BaseModel):
     article_count: int
     first_seen_at: datetime
     last_seen_at: datetime
+    has_primary_source: bool
+    sec_filing_url: str | None
     source_articles: list[ArticleLinkOut]
 
 
@@ -113,6 +115,8 @@ def _build_story_out(story: Story) -> StoryOut:
         article_count=cluster.article_count,
         first_seen_at=cluster.first_seen_at,
         last_seen_at=cluster.last_seen_at,
+        has_primary_source=cluster.has_primary_source,
+        sec_filing_url=cluster.sec_filing_url,
         source_articles=source_articles,
     )
 

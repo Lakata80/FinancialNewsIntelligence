@@ -1,0 +1,25 @@
+id: numbers_trap_001
+category: numbers_trap
+description: "Same NVDA article: Q2 actual EPS $2.35 vs Q3 guidance EPS $2.80 — must not mix quarters"
+articles:
+  - id: 1
+    ticker: NVDA
+    publisher: Reuters
+    title: "NVIDIA Q2 beats, guides Q3 higher"
+    clean_text: >
+      NVIDIA reported Q2 FY2025 earnings per share of $2.35, beating the consensus
+      estimate of $2.09. For the third quarter of fiscal 2025, NVIDIA guided for
+      earnings per share of approximately $2.80, representing 19% sequential growth.
+      Q2 revenue was $13.5 billion; Q3 revenue guidance midpoint is $16.0 billion.
+expected_status: verified
+expected_injection: false
+must_include_facts:
+  - "2.35"
+  - "13.5 billion"
+must_not_include:
+  - "Q2 EPS of $2.80"
+  - "Q2 earnings of $2.80"
+  - "second quarter EPS of 2.80"
+  - "$2.57"
+  - "$2.58"
+  - "Q3 revenue of $13.5"

@@ -1,0 +1,43 @@
+id: sec_corroboration_001
+category: normal
+description: "8-K item 2.02 (earnings) for NVDA + 2 media articles — SEC filing corroborates media cluster"
+articles:
+  - id: 1
+    ticker: NVDA
+    publisher: Reuters
+    title: "NVIDIA reports Q3 FY2025 results beating estimates"
+    clean_text: >
+      NVIDIA Corporation reported third-quarter fiscal 2025 revenue of $35.08 billion,
+      up 94% year over year and above analyst estimates of $32.9 billion. Diluted earnings
+      per share came in at $0.81, versus the consensus estimate of $0.74. Data center
+      revenue was $30.8 billion, a 112% increase year over year. CEO Jensen Huang said
+      the company is "experiencing incredible demand across all customer types."
+  - id: 2
+    ticker: NVDA
+    publisher: Yahoo Finance
+    title: "NVDA Q3 results: $35.08B revenue beats estimates"
+    clean_text: >
+      NVIDIA posted Q3 FY2025 revenue of $35.08 billion and diluted EPS of $0.81,
+      both exceeding Wall Street forecasts. The data center segment generated $30.8 billion,
+      up 112% year over year. The company guided for Q4 revenue of approximately $37.5 billion.
+  - id: 3
+    ticker: NVDA
+    publisher: SEC EDGAR
+    title: "8-K NVDA — Results of Operations"
+    clean_text: >
+      NVIDIA Corporation (NASDAQ: NVDA) today reported revenue for the third quarter ended
+      October 27, 2024 of $35.08 billion, up 17% from the previous quarter and up 94%
+      from a year ago. GAAP earnings per diluted share for the third quarter was $0.78,
+      up 16% from the previous quarter and up 111% from a year ago. Non-GAAP earnings per
+      diluted share was $0.81, up 19% from the previous quarter and up 103% from a year ago.
+expected_status: verified
+expected_injection: false
+must_include_facts:
+  - "35.08"
+  - "94%"
+  - "30.8"
+must_not_include:
+  - "$36 billion"
+  - "buy"
+  - "sell"
+  - "recommend"

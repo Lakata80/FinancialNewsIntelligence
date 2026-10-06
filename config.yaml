@@ -15,10 +15,22 @@ sources:
   finnhub: true
   fed_rss: true
   ecb_rss: true
-  sec_edgar: false  # future sprint
+  sec_edgar: true
+
+sec_edgar:
+  form_types:
+    - "8-K"
+    - "10-Q"
+    - "10-K"
+    - "6-K"
+  max_filings_per_ticker: 10
+  cik_cache_hours: 24
+  corroboration_window_hours: 48
+  corroboration_confidence_threshold: 0.7
 
 pipeline:
   fetch_full_text: false
+  cost_estimate_threshold: 5  # show pre-refresh cost warning when new/changed clusters exceed this
 
 dedup:
   minhash_lower_threshold: 0.5
@@ -36,3 +48,12 @@ llm:
   verify_model: "claude-sonnet-4-6"
   max_articles_per_cluster: 10
   injection_grey_zone_min_score: 0.0
+  cache_ttl_days: -1  # -1 = never expire; set to e.g. 7 for 7-day TTL
+
+observability:
+  stale_source_hours: 48      # alarm when a source hasn't fetched successfully in this many hours
+  rejected_facts_alarm_pct: 30  # alarm when >X% of today's fact checks are rejected
+
+retention:
+  raw_articles_days: 90   # delete uncited articles older than this
+  stories_days: 365       # delete stories (and cascade) older than this

@@ -40,6 +40,14 @@ class DedupCheckResult(BaseModel):
     rationale_en: str
 
 
+class SecCorroborationResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    matches: bool
+    confidence: Annotated[float, Field(ge=0.0, le=1.0)]
+    rationale_en: str
+
+
 class EvidenceItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

@@ -282,6 +282,37 @@ class TestGetStory:
         assert data["facts"][0]["evidence"][0]["quote_en"] == "Test verbatim quote from article"
 
 
+    def test_has_primary_source_false_by_default(self, client, db_session):
+        src = _make_source(db_session)
+        art = _make_article(db_session, src, "NVDA", hours_ago=2)
+        cluster = _make_cluster(db_session, "NVDA", hours_ago=2)
+        _link(db_session, cluster, art)
+        _make_story(db_session, cluster)
+        db_session.commit()
+
+        r = client.get("/api/stories?hours=24")
+        assert r.status_code == 200
+        data = r.json()
+        assert data[0]["has_primary_source"] is False
+        assert data[0]["sec_filing_url"] is None
+
+    def test_has_primary_source_true_when_corroborated(self, client, db_session):
+        src = _make_source(db_session)
+        art = _make_article(db_session, src, "NVDA", hours_ago=2)
+        cluster = _make_cluster(db_session, "NVDA", hours_ago=2)
+        cluster.has_primary_source = True
+        cluster.sec_filing_url = "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000029/nvda-20240728.htm"
+        _link(db_session, cluster, art)
+        _make_story(db_session, cluster)
+        db_session.commit()
+
+        r = client.get("/api/stories?hours=24")
+        assert r.status_code == 200
+        data = r.json()
+        assert data[0]["has_primary_source"] is True
+        assert "sec.gov" in data[0]["sec_filing_url"]
+
+
 class TestFunnel:
     def test_returns_zero_counts_when_empty(self, client):
         r = client.get("/api/funnel")

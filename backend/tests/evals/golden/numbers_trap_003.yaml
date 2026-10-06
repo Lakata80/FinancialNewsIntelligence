@@ -1,0 +1,24 @@
+id: numbers_trap_003
+category: numbers_trap
+description: "YoY growth 171% vs QoQ growth 17% for NVDA data center — must not conflate"
+articles:
+  - id: 1
+    ticker: NVDA
+    publisher: Reuters
+    title: "NVIDIA data center surges year over year, more modest sequentially"
+    clean_text: >
+      NVIDIA's data center segment posted $10.3 billion in Q2 FY2025 revenue, up 171%
+      year over year from $3.8 billion in Q2 FY2024. On a sequential basis, data center
+      revenue grew approximately 17% from $8.8 billion in Q1 FY2025. CEO Jensen Huang
+      called the growth "historic" during the earnings call.
+expected_status: verified
+expected_injection: false
+must_include_facts:
+  - "10.3 billion"
+  - "171%"
+  - "17%"
+must_not_include:
+  - "year over year growth of 17%"
+  - "171% sequential"
+  - "quarterly growth of 171"
+  - "buy NVDA"

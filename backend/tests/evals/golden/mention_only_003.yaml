@@ -1,0 +1,23 @@
+id: mention_only_003
+category: mention_only
+description: "General tech layoffs article that mentions META only in passing list"
+articles:
+  - id: 1
+    ticker: META
+    publisher: AP
+    title: "Tech layoffs spread across Silicon Valley in 2025"
+    clean_text: >
+      Technology companies continued to cut jobs throughout 2025, with Google parent
+      Alphabet, Amazon, Microsoft, and others announcing reductions. Meta Platforms
+      was among the companies that reduced headcount last year, though the company
+      has since resumed hiring in its AI division. The layoffs reflect a broader
+      industry reset after pandemic-era over-hiring.
+expected_injection: false
+must_not_include:
+  - "Meta laid off"
+  - "Meta cut"
+  - "Facebook revenue"
+  - "Meta earnings"
+  - "meta quarterly results"
+  - "$40 billion"
+  - "buy META"

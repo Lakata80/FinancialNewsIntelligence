@@ -1,0 +1,16 @@
+id: sparse_001
+category: sparse
+description: "Just a headline and single sentence about NVDA stock move — minimal content"
+articles:
+  - id: 1
+    ticker: NVDA
+    publisher: MarketWatch
+    title: "NVDA shares rise 5% after earnings beat"
+    clean_text: "NVDA shares rose 5% in after-hours trading after the company beat Q2 earnings estimates."
+expected_injection: false
+must_not_include:
+  - "revenue of $13"
+  - "EPS of $"
+  - "buy NVDA"
+  - "price target"
+  - "buy signal"

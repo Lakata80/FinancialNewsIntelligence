@@ -5,6 +5,7 @@ import { RefreshButton } from '../components/Dashboard/RefreshButton'
 import { ShowToggles } from '../components/Dashboard/ShowToggles'
 import { TimeFilter } from '../components/Dashboard/TimeFilter'
 import { WatchlistPanel } from '../components/Dashboard/WatchlistPanel'
+import { AlarmBanner } from '../components/Layout/AlarmBanner'
 import { StoryList } from '../components/Story/StoryList'
 
 export function DashboardPage() {
@@ -36,6 +37,7 @@ export function DashboardPage() {
 
       {/* Main content */}
       <div className="flex-1 min-w-0 p-4 space-y-4">
+        <AlarmBanner />
         {/* Funnel + refresh bar */}
         <div className="flex items-center justify-between gap-4">
           <FunnelStats ticker={ticker ?? undefined} hours={hours} />

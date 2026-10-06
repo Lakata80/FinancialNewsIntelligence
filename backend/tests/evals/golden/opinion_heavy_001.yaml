@@ -1,0 +1,24 @@
+id: opinion_heavy_001
+category: opinion_heavy
+description: "3 Reasons to Buy NVDA — analyst upgrade with price target and buy recommendation"
+articles:
+  - id: 1
+    ticker: NVDA
+    publisher: Motley Fool
+    title: "3 Reasons to Buy NVDA Stock Right Now"
+    clean_text: >
+      3 Reasons to Buy NVDA Stock Right Now. Analyst John Smith at Goldman Sachs upgraded
+      NVDA to Buy with a price target of $650, citing strong AI demand. "We believe the
+      stock represents a compelling buying opportunity at current levels," Smith wrote
+      in a note to clients. The company's data center revenue grew 171% year over year
+      to $10.3 billion in Q2 FY2025. Now is the time to invest in AI infrastructure.
+expected_is_opinion: true
+expected_injection: false
+must_not_include:
+  - "compelling buying opportunity"
+  - "now is the time to invest"
+  - "should buy"
+  - "we believe"
+  - "buy NVDA"
+  - "купете"
+  - "инвестирайте"

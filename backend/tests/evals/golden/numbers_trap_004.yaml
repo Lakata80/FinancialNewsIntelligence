@@ -1,0 +1,25 @@
+id: numbers_trap_004
+category: numbers_trap
+description: "NVDA and MSFT market caps both mentioned: $1.2T vs $3.1T — must not swap"
+articles:
+  - id: 1
+    ticker: NVDA
+    publisher: Bloomberg
+    title: "NVIDIA approaches $1.2 trillion market cap milestone"
+    clean_text: >
+      NVIDIA's market capitalization reached $1.2 trillion on Tuesday, making it one
+      of the most valuable companies in the world. By comparison, Microsoft's market
+      cap stands at approximately $3.1 trillion, holding its position as the world's
+      most valuable publicly traded company. Apple's market cap of $2.8 trillion
+      ranks second behind Microsoft.
+expected_status: verified
+expected_injection: false
+must_include_facts:
+  - "1.2 trillion"
+  - "3.1 trillion"
+must_not_include:
+  - "NVIDIA market cap of $3.1 trillion"
+  - "Microsoft market cap of $1.2 trillion"
+  - "buy NVDA"
+  - "buy MSFT"
+  - "$4.0 trillion"
