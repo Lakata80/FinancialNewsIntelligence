@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import time
 from datetime import datetime, timezone
 
@@ -10,6 +11,15 @@ from sqlalchemy import select
 
 from app.llm.budget import BudgetExceeded, BudgetGuard
 from app.models.news import LlmCall, LlmResponseCache
+
+# Matches ```json ... ``` or ``` ... ``` code fences that some models add around JSON.
+_CODE_FENCE_RE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.IGNORECASE)
+
+
+def _strip_code_fence(text: str) -> str:
+    """Extract JSON from a markdown code fence if present; otherwise return as-is."""
+    m = _CODE_FENCE_RE.search(text)
+    return m.group(1).strip() if m else text
 
 HAIKU_INPUT_COST = 1.00 / 1_000_000    # USD per input token
 HAIKU_OUTPUT_COST = 5.00 / 1_000_000   # USD per output token
@@ -162,7 +172,7 @@ class AnthropicLlmClient:
             in_tok: int = response.usage.input_tokens
             out_tok: int = response.usage.output_tokens
             cost = in_tok * self._input_cost + out_tok * self._output_cost
-            text = response.content[0].text.strip()
+            text = _strip_code_fence(response.content[0].text.strip())
 
             try:
                 json.loads(text)

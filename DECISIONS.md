@@ -1,5 +1,29 @@
 # Architecture Decision Records
 
+## ADR-028 — Solo cluster fallback in dedup pipeline
+
+**Status:** Accepted
+**Date:** 2026-10-06
+
+### Context
+The dedup pipeline (exact-hash + MinHash) only creates clusters when ≥ 2 articles cover the
+same event. With a single RSS source (Yahoo Finance), every article is a unique story — no
+near-duplicates form, so 0 clusters are produced and the LLM stages never run.
+
+### Decision
+After exact and MinHash dedup, `assign_solo_clusters()` wraps every unassigned active article
+within the time window into its own single-article cluster (`match_method="solo"`). This ensures
+the pipeline produces output even when only one publisher covers an event.
+
+When a second publisher later covers the same event, MinHash will cluster the two articles
+together and the solo cluster is superseded on the next run (the solo cluster stays in the DB
+but `last_seen_at` of the multi-article cluster becomes the authoritative version).
+
+### Consequences
+- Stories are now produced from single-source data (Yahoo Finance alone is enough to run).
+- Multi-publisher corroboration still produces richer clusters when available.
+- Budget impact: more clusters → more LLM calls per run; budget guard still enforces the cap.
+
 ## ADR-001 — Technology Stack
 
 **Status:** Accepted

@@ -1,11 +1,57 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.news import Article, ClusterMember, StoryCluster
+
+
+def assign_solo_clusters(session: Session, window_hours: int = 48) -> int:
+    """Create single-article clusters for active articles not yet assigned to any cluster.
+
+    This runs after exact and MinHash dedup. Articles with no near-duplicate
+    (typical when only one publisher covers an event) each become their own cluster
+    so they can proceed through classify → summarize → verify.
+
+    Only considers articles within window_hours to avoid reprocessing old content.
+    Returns the number of new solo clusters created.
+    """
+    assigned_ids_q = select(ClusterMember.article_id)
+    cutoff = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=window_hours)
+
+    stmt = (
+        select(Article)
+        .where(Article.status == "active")
+        .where(Article.published_at >= cutoff)
+        .where(Article.id.not_in(assigned_ids_q))
+        .order_by(Article.published_at)
+    )
+    articles = session.execute(stmt).scalars().all()
+
+    new_clusters = 0
+    for article in articles:
+        tickers: list[str] = article.tickers_raw if isinstance(article.tickers_raw, list) else []
+        cluster = StoryCluster(
+            primary_ticker=tickers[0] if tickers else None,
+            first_seen_at=article.published_at,
+            last_seen_at=article.published_at,
+            article_count=1,
+            publisher_count=1,
+        )
+        session.add(cluster)
+        session.flush()
+        session.add(ClusterMember(
+            cluster_id=cluster.id,
+            article_id=article.id,
+            match_method="solo",
+            similarity=1.0,
+            needs_llm_check=False,
+        ))
+        new_clusters += 1
+
+    return new_clusters
 
 
 def find_exact_clusters(session: Session) -> int:

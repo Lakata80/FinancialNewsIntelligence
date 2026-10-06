@@ -39,7 +39,7 @@ dedup:
 
 budget:
   monthly_llm_budget_usd: 10.0
-  daily_llm_budget_usd: 0.5
+  daily_llm_budget_usd: 1
 
 llm:
   model: "claude-haiku-4-5"
